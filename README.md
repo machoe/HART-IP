@@ -9,4 +9,4 @@ Attention:
 
 The code is designed by Zuye Yang.Everyone can download and modify it.But, If someone wants to use it in any product or in business,Please obtain the license from Zuye Yang first.
 
-ALL COPYRIGHT Resevred by Zuye Yang.
+ALL CopyRight Resevred by Zuye Yang.
