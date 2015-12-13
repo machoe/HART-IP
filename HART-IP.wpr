@@ -4,4 +4,9 @@
 # Wing IDE project file                                          #
 ##################################################################
 [project attributes]
+proj.file-list = [loc('cndust.py'),
+                  loc('connections.py'),
+                  loc('discovery.py'),
+                  loc('hart-ip.py'),
+                  loc('main.py')]
 proj.file-type = 'shared'
