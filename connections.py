@@ -5,7 +5,7 @@ import threading
 REC_BUFFER_SIZE = 2048
 
 
-class ServerConnection:
+class ServerConnection():
     '''
     initiate
     '''
@@ -14,6 +14,9 @@ class ServerConnection:
         self.port    = port
         self.threads = threads        
     
+    '''
+    TCP Server
+    '''
     def open_socket_with_TCP(self): 
         try: 
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -25,6 +28,9 @@ class ServerConnection:
             print "Could not open socket: " + message 
             sys.exit(1) 
     
+    '''
+    UDP Server
+    '''
     def open_socket_with_UDP(self): 
         try: 
             self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -40,7 +46,7 @@ class ServerConnection:
     '''
     inspect the ip address is ipv4 or not
     '''
-    def is_valid_ipv4_address(address):
+    def is_valid_ipv4_address(self,address):
         try:
             addr= socket.inet_pton(socket.AF_INET, address)
         except AttributeError: # no inet_pton here, sorry
@@ -56,13 +62,16 @@ class ServerConnection:
     '''
     inspect the ip address is ipv6 or not
     '''
-    def is_valid_ipv6_address(address):
+    def is_valid_ipv6_address(self,address):
         try:
             addr= socket.inet_pton(socket.AF_INET6, address)
         except socket.error: # not a valid address
             return False
         return True
     
+    '''
+    initiate the socket connection,and start the listenning thread
+    '''
     def run(self):
         self.open_socket_with_TCP()
         while True:
@@ -73,12 +82,20 @@ class ServerConnection:
     
     
 class ClientConnection(threading.Thread):
+    '''
+    client:socket.accept return the socket connection
+    addr  :socket.accept return the source address
+    '''
     def __init__(self,(client,addr)):
         threading.Thread.__init__(self)
         self.client = client
         self.addr   = addr
         self.size   = REC_BUFFER_SIZE
     
+    
+    '''
+    ovrerride the run method
+    '''
     def run(self):
         while True:
             rec_data = self.client.recv(self.size)
