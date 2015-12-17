@@ -1,5 +1,6 @@
 import socket
 import threading
+from hartip import ReceiveFromSocket
 
 
 REC_BUFFER_SIZE = 2048
@@ -99,7 +100,7 @@ class ClientConnection(threading.Thread):
     def run(self):
         while True:
             rec_data = self.client.recv(self.size)
-            print 'rec:',rec_data
+            ReceiveFromSocket(rec_data,self.client)
             if not rec_data: break
         print 'over'
         self.client.close()
