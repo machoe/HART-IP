@@ -1,7 +1,9 @@
 
 
 
-Device = {'ChangeCounter':[00,00],'ExtendStatus':0}                           
+Device = {'ChangeCounter':[00,00],'Status':0,'ExtendStatus':0}     
+
+
                            
 Command0_Response = [254,   
                      0x26,0x4E,                     #Expanded Device Type  :  0x264E Rosemount Wireless Gateway   Table 1
@@ -15,9 +17,18 @@ Command0_Response = [254,
                      0x00,0x00,0xF0,                #DeviceID
                      0x00,                          #Minimun number of Preambles to be sent
                      0x04,                          #Maximun number of Device Variables
-                     Device['ChangeCounter'],       #Configuration Change Counter
+                     Device['ChangeCounter'][0],    #Configuration Change Counter
+                     Device['ChangeCounter'][1],
                      Device['ExtendStatus'],        #Extended Field Device Status
                      0x60,0x1E,                     #ManufacturerID Microcyber INC.
                      0x60,0x1E,                     #Private Label Distributor Code
                      132,                           #Device Profile  WirelessHART Gateway
                      ]
+
+def CommandRequest_0():
+    cmdID = [0]
+    ResCode = [0]    
+    length = len(Command0_Response)
+    return cmdID + ResCode + [Device['Status']] + [length] + Command0_Response
+
+HARTCommandRequestFunction = {'0':CommandRequest_0}

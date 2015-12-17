@@ -1,4 +1,5 @@
 import struct
+from hartcommand import *
 
 Length = {'Total':8,'VerLen':1,'MesTypeLen':1,'MesIDLen':1,'StatusCodeLen':1,'SeqNumLen':2,'ByteCountLen':2}
 
@@ -52,8 +53,8 @@ def ReceiveFromSocket(data,client):
             elif MesHeader['RecMesID'] == 3:   #Token-Passing PDU
                 print 'Token-Passing PDU'
                 TPLength = MesHeader['RecByteCount'] - 8
-                ProcessTPPDU(data[8:RecLength],client)
-                
+                resBinary = ProcessTPPDURequest(data[8:RecLength],client)
+                client.send(ResponseToRequest(Version,0,0,MesHeader['RecSecNum'],resBinary))              
                 
             elif MesHeader['RecMesID'] == 128: #Discovery
                 print 'Discovery'
@@ -120,11 +121,28 @@ def AssemblePacket(ver,Mestype,MesID,Status,SeqNum,data):
 def ProcessTPPDURequest(data,client):
     Delimiter = struct.unpack('B',data[0])[0]
     if Delimiter == 0x02:
-        
+        res = CommandRequest_0()
+        resDelimiter = 0x06
+        addr = 128
+        resList = [resDelimiter] + [addr] + res
+        resList.append(CheckSum(resList))
+        return ListToBinary(resList)
     elif Delimiter == 0x82:
         print 'long address request'
+        addr = struct.unpack('5B',data[1:6])
     else:
         print 'wrong request is receive' + Delimiter
         return 
-        
     
+def ListToBinary(InputList):
+    str = ''
+    for i in range(len(InputList)):
+        str += struct.pack('B',InputList[i])        
+    return str
+
+def CheckSum(InputList):
+    Check = InputList[0]
+    for i in range(1,len(InputList)):
+        Check ^= InputList[i]
+        
+    return Check
