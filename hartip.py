@@ -53,8 +53,12 @@ def ReceiveFromSocket(data,client):
             elif MesHeader['RecMesID'] == 3:   #Token-Passing PDU
                 print 'Token-Passing PDU'
                 TPLength = MesHeader['RecByteCount'] - 8
-                resBinary = ProcessTPPDURequest(data[8:RecLength],client)
-                client.send(ResponseToRequest(Version,0,0,MesHeader['RecSecNum'],resBinary))              
+                try:
+                    RC,resBinary = ProcessTPPDURequest(data[8:RecLength],client)
+                except Exception as e:
+                    RC = False
+                if RC == True:
+                    client.send(ResponseToRequest(Version,3,0,MesHeader['RecSecNum'],resBinary))              
                 
             elif MesHeader['RecMesID'] == 128: #Discovery
                 print 'Discovery'
@@ -89,7 +93,7 @@ def ProcessHeader(data):
         RecHeader['RecSecNum']     = struct.unpack('!H',data[4:6])[0]
         RecHeader['RecByteCount']  = struct.unpack('!H',data[6:8])[0] 
         Res['Status'] = True
-    except Err as E:
+    except Exception as E:
         print E
     
     return Res
@@ -112,24 +116,58 @@ def AssemblePacket(ver,Mestype,MesID,Status,SeqNum,data):
         frame+=struct.pack('!H',SeqNum)
         frame+=struct.pack('!H',length)
         frame+=data
-    except Err as e:
+    except Exception as e:
         print e
     
     return frame
 
 
 def ProcessTPPDURequest(data,client):
-    Delimiter = struct.unpack('B',data[0])[0]
-    if Delimiter == 0x02:
-        res = CommandRequest_0()
-        resDelimiter = 0x06
-        addr = 128
-        resList = [resDelimiter] + [addr] + res
-        resList.append(CheckSum(resList))
-        return ListToBinary(resList)
-    elif Delimiter == 0x82:
-        print 'long address request'
-        addr = struct.unpack('5B',data[1:6])
+    datalist = list(struct.unpack(str(len(data))+'B',data))
+    recCheck = datalist.pop()
+    if recCheck == CheckSum(datalist):
+        Delimiter = datalist[0]
+        if Delimiter == 0x02:                                   #Polling Request
+            
+            cmdres = CommandRequest_0()
+            cmd0 = [0]
+            res = cmd0 + cmdres
+            resDelimiter = 0x06
+            addr = [128]
+            resList = [resDelimiter] + addr + res
+            resList.append(CheckSum(resList))
+            return True,ListToBinary(resList)
+        elif Delimiter == 0x82:                                 #Long Address Request
+            addr = struct.unpack('!5B',data[1:6])
+            if addr == Device['Address']:
+                recCmdID = datalist[6]
+                recCmdLength = datalist[7]                
+                try:
+                    if HARTCommandRequestFunction.has_key(str(recCmdID)):
+                        print 'Command' , recCmdID
+                        if recCmdLength == 0:
+                            resCommand = HARTCommandRequestFunction[str(recCmdID)]()                   
+                        else:
+                            resCommand = HARTCommandRequestFunction[str(recCmdID)](datalist[7:])
+                    else:
+                        print 'No this command',recCmdID
+                        resCommand = [64]   # Response Code, No payloads
+                except Exception as e:
+                    resCommand = [64]   # problem occur
+                
+                res = [recCmdID] + resCommand
+                    
+                resDelimiter = 0x86
+                addr = [166,78,0,0,240]
+                resList = [resDelimiter] + addr + res
+                resList.append(CheckSum(resList))
+                return True,ListToBinary(resList)        
+            else:
+                print 'Delimiter is error'
+                return 
+        else:   #checksum is error
+            print checksum is error
+            return
     else:
         print 'wrong request is receive' + Delimiter
         return 
