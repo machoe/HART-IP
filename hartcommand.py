@@ -11,6 +11,8 @@ Device = {'ChangeCounter':[00,00],
           } 
 
 
+
+
                            
 Command0_Response = [254,   
                      ExpandedDeviceType[0],         #Expanded Device Type  :  0x264E Rosemount Wireless Gateway   Table 1
@@ -37,11 +39,24 @@ Command0_Response = [254,
                      132,                           #Device Profile  WirelessHART Gateway
                      ]
 
-Command12_Response = 'Microcyber\'s Gateway'
+Command12_Response = 'Microcyber'
 
-Command13_Response = {'Tag':'W1','Descriptor':'Wi-gateway','Date':[18,12,2015-1900]}
+Command13_Response = {'Tag':'W','Descriptor':'WIRELESS123','Date':[18,12,2015-1900]}
 
 Command20_Response = 'Microcyber\'s Gateway'
+
+DetectDeviceNum = [0,1]
+DRBufferNum = 2
+Command74_Response = [
+                      0x01,                       #Maximun Number of I/O Cards
+                      0x01,                       #Maximum Number of Channels per I/O Card
+                      0xF9,                       #Maximum Number of Sub-Devices Per Channel
+                      DetectDeviceNum[0],         #Number of devices detected 
+                      DetectDeviceNum[1],
+                      DRBufferNum,                #Maximum number of delayed responses supported by I/O System
+                      0x01,                       #Master Mode for communication on channels . 0 = Secondary Master; 1 = Primary Master (default)
+                      0x03,                       #Retry Count to use when sending commands to a sub-device. Valid range is 2 to 5. 3 retries is default.
+                     ]
 
 
 
@@ -51,6 +66,7 @@ def CommandRequest_0():
 
 def CommandRequest_12(): 
     RC = [0]
+    datalist = []
     datalist = StrToPackedASCII(Command12_Response,32)
     return  [len(datalist)+2] + RC + [Device['Status']] + datalist
 
@@ -64,6 +80,11 @@ def CommandRequest_20():
     datalist = StrToAsciiList(Command20_Response)
     datalist = datalist + (32-len(datalist))*[0x20]
     return  [len(datalist)+2] + RC + [Device['Status']] + datalist
+
+def CommandRequest_74():
+    RC = [0]
+    return [len(Command74_Response)+2] + RC + [Device['Status']] + Command74_Response
+
     
 
 HARTCommandRequestFunction = {'0':CommandRequest_0,
@@ -71,7 +92,4 @@ HARTCommandRequestFunction = {'0':CommandRequest_0,
                               '13':CommandRequest_13,
                               '20':CommandRequest_20,
                               '74':CommandRequest_74,
-                              }
-
-
-   
+                              }   

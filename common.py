@@ -2,6 +2,8 @@
 obj:string
 maxlen:fixed length,HCF127-cmd18
 Only the tag 6Bytes or 8Packed ASCII
+
+Attention:The function is only support to tanslate the UPPER the str.if the parameters is lowpper the auto to change upper
 """
 def StrToPackedASCII(obj,maxlen):
     a=[]
@@ -10,7 +12,9 @@ def StrToPackedASCII(obj,maxlen):
     if objlen > maxlen:
         return False
     for str in obj:
-        #trans to ascii and truncate bit 6 and 7,then put into a list
+        #trans to ascii and truncate bit 6 and 7,then put into a list,auto to change upper
+        if str.islower():
+            str = str.upper()
         a.append((ord(str) & 0x3F))    
 
     a=a+(maxlen-objlen)*[0x20]    
@@ -28,17 +32,7 @@ def StrToPackedASCII(obj,maxlen):
                 #print bin(b[num]<<(2*(num+1)))
                 #print bin(b[num+1]>>(6-2*(num+1)))
                 result.append(((b[num]<<(2*(num+1))) | (b[num+1]>>(6-2*(num+1)))) & 0x000000FF)
-    #if r:
-        ##no need to repair the list
-        #if r == 1:
-            #result.append((a[q*4]<<2) & 0x00FD)
-        #else:
-            ##r==2 r==3 need to repai the list "one" 0
-            #a.append(0x20)
-            #for num in range(r): 
-                ##print bin(a[num+q*4]<<(2*(num+1)))
-                ##print bin(a[num+1+q*4]>>(6-2*(num+1)))
-                #result.append(((a[num+q*4]<<(2*(num+1))) | (a[num+1+q*4]>>(6-2*(num+1)))) & 0x000000FF)        
+
     return result
 
 def StrToList(string,width):
@@ -52,7 +46,19 @@ def StrToAsciiList(str):
     length = len(str)
     result = []
     for i in range(length):
-        result.append(ord(str[i]))
-    
+        result.append(ord(str[i]))    
     return result
+
+def LittleToBigEnd(inputlist):
+    newlist = []
+    for i in range(len(inputlist)):
+        newlist.append(inputlist[len(inputlist)-i-1])
+    return newlist
+
+def AlignmentWithZero(inputlist,wigth):
+    newlist = []
+    alignlen = wigth - len(inputlist)
+    for i in range(alignlen):
+        newlist.append(0)
+    return newlist + inputlist
     
