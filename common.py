@@ -61,4 +61,14 @@ def AlignmentWithZero(inputlist,wigth):
     for i in range(alignlen):
         newlist.append(0)
     return newlist + inputlist
+
+def FillAlign(variable,width):
+    if width == 2:
+        variable = variable & 0xFFFF
+        return [(variable>>8)&0xFF,variable&0xFF]
+    elif width == 4:
+        variable = variable & 0xFFFFFFFF
+        return [(variable>>24)&0xFF,(variable>>16)&0xFF,(variable>>8)&0xFF,variable&0xFF]
+
+
     

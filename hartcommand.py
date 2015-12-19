@@ -4,7 +4,7 @@ ManufacturerID     = (0x60,0x1E)
 ExpandedDeviceType = (0x26,0x4E)
 DeviceID           = (0x00,0x00,0xF0)
 
-Device = {'ChangeCounter':[00,00],
+Device = {'ChangeCounter':0,
           'Status':0,
           'ExtendStatus':0,
           'Address':(0x80|ExpandedDeviceType[0],ExpandedDeviceType[1],DeviceID[0],DeviceID[1],DeviceID[2])
@@ -29,8 +29,8 @@ Command0_Response = [254,
                      DeviceID[2],
                      0x00,                          #Minimun number of Preambles to be sent
                      0x04,                          #Maximun number of Device Variables
-                     Device['ChangeCounter'][1],    #Configuration Change Counter
-                     Device['ChangeCounter'][0],
+                     0,                             #Configuration Change Counter
+                     0,
                      Device['ExtendStatus'],        #Extended Field Device Status
                      ManufacturerID[0],             #ManufacturerID Microcyber INC.
                      ManufacturerID[1],
@@ -45,14 +45,14 @@ Command13_Response = {'Tag':'W','Descriptor':'WIRELESS123','Date':[18,12,2015-19
 
 Command20_Response = 'Microcyber\'s Gateway'
 
-DetectDeviceNum = [0,1]
+DetectDeviceNum = 1
 DRBufferNum = 2
 Command74_Response = [
                       0x01,                       #Maximun Number of I/O Cards
                       0x01,                       #Maximum Number of Channels per I/O Card
                       0xF9,                       #Maximum Number of Sub-Devices Per Channel
-                      DetectDeviceNum[0],         #Number of devices detected 
-                      DetectDeviceNum[1],
+                      0x00,                       #Number of devices detected 
+                      0x01,                                                   #default is 0x01
                       DRBufferNum,                #Maximum number of delayed responses supported by I/O System
                       0x01,                       #Master Mode for communication on channels . 0 = Secondary Master; 1 = Primary Master (default)
                       0x03,                       #Retry Count to use when sending commands to a sub-device. Valid range is 2 to 5. 3 retries is default.
@@ -62,6 +62,9 @@ Command74_Response = [
 
 def CommandRequest_0(): 
     RC = [0]
+    ChangeCounter = FillAlign(Device['ChangeCounter'],2)
+    Command0_Response[14] = ChangeCounter[0]
+    Command0_Response[15] = ChangeCounter[1]
     return  [len(Command0_Response)+2] + RC + [Device['Status']] + Command0_Response
 
 def CommandRequest_12(): 
@@ -83,6 +86,9 @@ def CommandRequest_20():
 
 def CommandRequest_74():
     RC = [0]
+    localDetectDeviceNum = FillAlign(DetectDeviceNum,2)
+    Command74_Response[3] = localDetectDeviceNum[0]  
+    Command74_Response[4] = localDetectDeviceNum[1] 
     return [len(Command74_Response)+2] + RC + [Device['Status']] + Command74_Response
 
     
