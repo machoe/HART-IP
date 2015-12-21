@@ -1,4 +1,5 @@
 import redis
+import time
 
 class RedisConnector():
     def __init__(self,host,port,db):
@@ -21,7 +22,7 @@ class RedisConnector():
                     print("Succeed to re-connect Redis.\n")
                     return 'Enable'
                 except Exception,e:
-                    print("Error1-2:Faile to re-connect redis:\n%s" %e)
+                    print("Error:Faile to re-connect redis:\n%s" %e)
                     i+=1
                     time.sleep(2)
             return 'Unable' 

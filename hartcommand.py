@@ -7,7 +7,13 @@ DeviceID           = (0x00,0x00,0xF0)
 Device = {'ChangeCounter':0,
           'Status':0,
           'ExtendStatus':0,
-          'Address':(0x80|ExpandedDeviceType[0],ExpandedDeviceType[1],DeviceID[0],DeviceID[1],DeviceID[2])
+          'Address':(0x80|ExpandedDeviceType[0],ExpandedDeviceType[1],DeviceID[0],DeviceID[1],DeviceID[2]),
+          'DeviceOperatingMode':0,
+          'DeviceSpecificStatus':[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+          'StandardizedStatus0':0,
+          'StandardizedStatus1':0,
+          'StandardizedStatus2':0,
+          'StandardizedStatus3':0,
           } 
 
 
@@ -84,6 +90,12 @@ def CommandRequest_20():
     datalist = datalist + (32-len(datalist))*[0x20]
     return  [len(datalist)+2] + RC + [Device['Status']] + datalist
 
+def CommandRequest_48():
+    RC = [0]
+    datalist = Device['DeviceSpecificStatus'][0:6] + [Device['ExtendStatus']] + [Device['DeviceOperatingMode']] + [Device['StandardizedStatus0']] + \
+                   [Device['StandardizedStatus0']] + [Device['StandardizedStatus1']] + [0] + [Device['StandardizedStatus2']] +[ Device['StandardizedStatus3']] + [0] + Device['DeviceSpecificStatus'][6:]
+    return [len(datalist)+2] + RC + [Device['Status']] + datalist
+
 def CommandRequest_74():
     RC = [0]
     localDetectDeviceNum = FillAlign(DetectDeviceNum,2)
@@ -97,5 +109,6 @@ HARTCommandRequestFunction = {'0':CommandRequest_0,
                               '12':CommandRequest_12,
                               '13':CommandRequest_13,
                               '20':CommandRequest_20,
-                              '74':CommandRequest_74,
+                              '48':CommandRequest_48,
+                              '74':CommandRequest_74,                              
                               }   
