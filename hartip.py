@@ -25,30 +25,43 @@ def ReceiveFromSocket(data,client):
     print  struct.unpack(RecFmt,data)
          
     Header = ProcessHeader(data[0:8])
-    if Header['Status'] == True:
-        
-        MesHeader =  Header['RecHeader']
-        
-        
+    if Header['Status'] == True:        
+        MesHeader =  Header['RecHeader']          
         if MesHeader['RecMesType'] == 0:                                 #Request
             
             if MesHeader['RecMesID'] == 0:     #Session Initiate  
                 print 'Session initiate'
                 SessionReq = {'MasterType':'','InactivityCloseTime':''}
-                SessionReq['MasterType']            = struct.unpack('B',data[8])[0]
-                SessionReq['InactivityCloseTime']   = struct.unpack('!I',data[9:13])[0]   #Milliseconeds
-                
-                #response to initiate
                 ResData =''
-                ResData += struct.pack('B',SessionReq['MasterType'])
-                ResData += struct.pack('!I',SessionReq['InactivityCloseTime'])
-                client.send(ResponseToRequest(Version,0,0,MesHeader['RecSecNum'],ResData))              
+                
+                RC = 0
+                if MesHeader['RecVersion'] != Version:
+                    RC = 14
+                if MesHeader['RecByteCount'] < 13:
+                    RC = 6
+                else:
+                    SessionReq['MasterType']            = struct.unpack('B',data[8])[0]
+                    SessionReq['InactivityCloseTime']   = struct.unpack('!I',data[9:13])[0]   #Milliseconeds     
+                    if SessionReq['MasterType'] != 1:
+                        RC = 2                    
+                    if SessionReq['InactivityCloseTime'] <= 100000:
+                        SessionReq['InactivityCloseTime'] = 100000
+                        RC = 8
+                    client.settimeout(SessionReq['InactivityCloseTime']/1000)
+                    print 'sesstion timeout is:',SessionReq['InactivityCloseTime']
+                    
+                    #response to initiate 
+                    if RC==0:
+                        ResData += struct.pack('B',SessionReq['MasterType'])
+                        ResData += struct.pack('!I',SessionReq['InactivityCloseTime'])
+                client.send(ResponseToRequest(Version,0,RC,MesHeader['RecSecNum'],ResData))              
             
             elif MesHeader['RecMesID'] == 1:   #Session Close
                 print 'Session Close'
             
             elif MesHeader['RecMesID'] == 2:   #Keep Alive
                 print 'Keep Alive'
+                client.send(ResponseToRequest(Version,2,0,MesHeader['RecSecNum'],'')) 
            
             elif MesHeader['RecMesID'] == 3:   #Token-Passing PDU
                 print 'Token-Passing PDU'

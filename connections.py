@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 from hartip import ReceiveFromSocket
 
 
@@ -89,9 +90,11 @@ class ClientConnection(threading.Thread):
     '''
     def __init__(self,(client,addr)):
         threading.Thread.__init__(self)
-        self.client = client
-        self.addr   = addr
-        self.size   = REC_BUFFER_SIZE
+        self.client      = client
+        self.addr        = addr
+        self.size        = REC_BUFFER_SIZE
+        self.timeoutcnt  = 0
+        self.timeoutval  = 180 
     
     
     '''
@@ -99,8 +102,13 @@ class ClientConnection(threading.Thread):
     '''
     def run(self):
         while True:
-            rec_data = self.client.recv(self.size)
-            ReceiveFromSocket(rec_data,self.client)
-            if not rec_data: break
+            try:
+                rec_data = self.client.recv(self.size)
+                ReceiveFromSocket(rec_data,self.client)
+                if not rec_data: break
+            except Exception as e:
+                print e                
+                self.client.close() 
+                break
         print 'over'
         self.client.close()

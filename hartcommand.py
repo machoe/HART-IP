@@ -15,10 +15,6 @@ Device = {'ChangeCounter':0,
           'StandardizedStatus2':0,
           'StandardizedStatus3':0,
           } 
-
-
-
-
                            
 Command0_Response = [254,   
                      ExpandedDeviceType[0],         #Expanded Device Type  :  0x264E Rosemount Wireless Gateway   Table 1
